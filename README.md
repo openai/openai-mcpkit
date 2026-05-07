@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/openai-openai-mcpkit-badge.png)](https://mseep.ai/app/openai-openai-mcpkit)
+
 # MCPKit: Secure MCP blueprints for enterprise data
 
 MCPKit is a blueprint for building authenticated Model Context Protocol (MCP) servers that let you bring proprietary data, content, and systems into ChatGPT, via [ChatGPT Dev Mode](https://platform.openai.com/docs/guides/developer-mode). 

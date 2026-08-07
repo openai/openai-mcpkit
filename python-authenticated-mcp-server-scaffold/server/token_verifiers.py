@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 from typing import Any, Iterable, Sequence
+from urllib.parse import urlsplit
 
 import jwt
 from jwt import PyJWKClient
@@ -111,7 +112,16 @@ class IntrospectionTokenVerifier(TokenVerifier):
         )
 
     def _is_endpoint_safe(self) -> bool:
-        return self.introspection_endpoint.startswith(("https://", "http://localhost", "http://127.0.0.1"))
+        try:
+            parsed = urlsplit(self.introspection_endpoint)
+            hostname = parsed.hostname
+        except ValueError:
+            return False
+
+        if parsed.scheme.lower() == "https":
+            return hostname is not None
+
+        return parsed.scheme.lower() == "http" and hostname in {"localhost", "127.0.0.1"}
 
     @staticmethod
     def _parse_scopes(scope_value: str | Sequence[str] | None) -> list[str]:

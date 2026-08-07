@@ -311,7 +311,9 @@ app = mcp.streamable_http_app()
 async def log_authorization_header(request: Request, call_next):
     auth_header = request.headers.get("authorization")
     if auth_header:
-        logging.getLogger("mcp.server.auth").info("Authorization header: %s", auth_header)
+        logging.getLogger("mcp.server.auth").info(
+            "Authorization header present on request to %s", request.url.path
+        )
     else:
         logging.getLogger("mcp.server.auth").info("No Authorization header on request to %s", request.url.path)
     response = await call_next(request)

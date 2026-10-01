@@ -1,5 +1,8 @@
-mcp[server]>=1.0.0b6
+# The scaffold uses the MCP 1.x FastMCP API.
+mcp[server]>=1.0.0b6,<2
 fastapi>=0.110.0
+# Starlette 1.x removed the middleware decorator used by server/app.py.
+starlette<1
 uvicorn[standard]>=0.27.0
 openai>=1.40.0
 pydantic>=2.7.0

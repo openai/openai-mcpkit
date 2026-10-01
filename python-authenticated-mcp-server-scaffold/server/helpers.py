@@ -84,6 +84,14 @@ def _coerce_float(value: Any) -> float | None:
         return None
 
 
+def _first_nonempty(raw: dict[str, Any], *keys: str) -> Any:
+    for key in keys:
+        value = raw.get(key)
+        if value is not None and value != "":
+            return value
+    return None
+
+
 def _build_row(raw: dict[str, Any], source_file: str, source_format: str) -> dict[str, Any]:
     query = (raw.get("query") or raw.get("keyword") or raw.get("term") or raw.get("search_term") or "").strip()
     snapshot_date_value = (raw.get("snapshot_date") or "").strip()
@@ -92,12 +100,9 @@ def _build_row(raw: dict[str, Any], source_file: str, source_format: str) -> dic
         or (raw.get("date") or raw.get("week") or raw.get("week_id") or raw.get("period") or "")
     ).strip()
     region_val = (raw.get("region") or raw.get("region_name") or raw.get("geo") or "").strip()
-    search_index = _coerce_int(raw.get("search_index") or raw.get("index") or raw.get("score"))
+    search_index = _coerce_int(_first_nonempty(raw, "search_index", "index", "score"))
     branding_mix = _coerce_float(
-        raw.get("branding_mix")
-        or raw.get("mix_share")
-        or raw.get("implied_unit_sales_impact")
-        or raw.get("metric")
+        _first_nonempty(raw, "branding_mix", "mix_share", "implied_unit_sales_impact", "metric")
     )
 
     notable_event = (

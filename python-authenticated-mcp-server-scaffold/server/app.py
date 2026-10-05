@@ -128,13 +128,7 @@ async def search(query: str) -> dict[str, Any]:
         file_id = getattr(item, "file_id", None) or getattr(item, "id", None) or f"vs_{i}"
         filename = getattr(item, "filename", None) or f"Document {i+1}"
         content_list = getattr(item, "content", None) or []
-        text_content = ""
-        if content_list:
-            first = content_list[0]
-            if isinstance(first, dict) and "text" in first:
-                text_content = first.get("text") or ""
-            elif isinstance(first, str):
-                text_content = first
+        text_content = _collect_text_from_content(content_list)
         text_snippet = (text_content[:200] + "...") if len(text_content) > 200 else (text_content or "No content available")
         results.append(
             {

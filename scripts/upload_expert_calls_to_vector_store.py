@@ -71,10 +71,14 @@ def upload_transcripts(vector_store_id: str, transcript_paths: list[Path]) -> No
                 file=(path.name, file_handle),
                 purpose="assistants",
             )
-        client.vector_stores.files.create(
+        indexed = client.vector_stores.files.create_and_poll(
             vector_store_id=vector_store_id,
             file_id=uploaded.id,
         )
+        if indexed.status != "completed":
+            raise OpenAIError(
+                f"Transcript {path.name} was not indexed ({indexed.status})."
+            )
 
 
 def main() -> int:

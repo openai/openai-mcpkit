@@ -197,30 +197,38 @@ function buildRow(raw: Record<string, unknown>, sourceFile: string, sourceFormat
 
 async function loadTabularRows(filePath: string, delimiter: string) {
   const content = await fs.readFile(filePath, 'utf-8');
-  const lines = content.split(/\r?\n/);
+  // Retain original line endings inside quoted fields.
+  const lines = content.split(/(?<=\n)/);
   let headerLine: string | undefined;
   const dataLines: string[] = [];
 
+  let inQuotes = false;
   for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed) {
-      continue;
-    }
-    if (trimmed.startsWith('#')) {
-      const comment = trimmed.slice(1).trim();
-      if (!headerLine && comment.includes(delimiter)) {
-        headerLine = comment;
+    if (!inQuotes) {
+      const trimmed = line.trim();
+      if (!trimmed) {
+        continue;
       }
-      continue;
+      if (trimmed.startsWith('#')) {
+        const comment = trimmed.slice(1).trim();
+        if (!headerLine && comment.includes(delimiter)) {
+          headerLine = comment + (line.endsWith("\r\n") ? "\r\n" : "\n");
+        }
+        continue;
+      }
     }
     dataLines.push(line);
+    // Escaped quotes occur in pairs, leaving the record state unchanged.
+    for (const character of line) {
+      if (character === '"') inQuotes = !inQuotes;
+    }
   }
 
   if (dataLines.length === 0) {
     return [];
   }
 
-  const csvSource = `${headerLine ? `${headerLine}\n` : ''}${dataLines.join('\n')}`;
+  const csvSource = `${headerLine ?? ''}${dataLines.join('')}`;
 
   const records = parseCsv(csvSource, {
     columns: true,

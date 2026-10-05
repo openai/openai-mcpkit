@@ -196,16 +196,21 @@ def _load_tabular_rows(file_path: Path, delimiter: str) -> list[dict[str, Any]]:
     with file_path.open(newline="", encoding="utf-8") as csvfile:
         data_lines: list[str] = []
         header_line: str | None = None
+        in_quotes = False
         for raw_line in csvfile:
-            stripped = raw_line.strip()
-            if not stripped:
-                continue
-            if stripped.startswith("#"):
-                comment_content = stripped.lstrip("#").strip()
-                if header_line is None and delimiter in comment_content:
-                    header_line = comment_content + "\n"
-                continue
+            if not in_quotes:
+                stripped = raw_line.strip()
+                if not stripped:
+                    continue
+                if stripped.startswith("#"):
+                    comment_content = stripped.lstrip("#").strip()
+                    if header_line is None and delimiter in comment_content:
+                        header_line = comment_content + "\n"
+                    continue
             data_lines.append(raw_line)
+            # Escaped quotes occur in pairs, leaving the record state unchanged.
+            if raw_line.count('"') % 2:
+                in_quotes = not in_quotes
 
         if not data_lines:
             return rows

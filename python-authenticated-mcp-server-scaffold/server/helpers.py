@@ -25,6 +25,8 @@ def _collect_text_from_content(content_resp: Any) -> str:
             return []
         if isinstance(node, str):
             return [node]
+        if isinstance(node, (list, tuple)):
+            return [text for item in node for text in _walk(item)]
 
         collected: list[str] = []
         text_value: Any = None

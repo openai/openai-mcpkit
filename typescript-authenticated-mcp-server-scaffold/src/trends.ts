@@ -55,23 +55,29 @@ function parseIsoDate(value: string | undefined | null): Date | undefined {
     const year = Number.parseInt(dateMatch[1], 10);
     const month = Number.parseInt(dateMatch[2], 10) - 1;
     const day = Number.parseInt(dateMatch[3], 10);
-    const parsed = new Date(Date.UTC(year, month, day));
-    if (!Number.isNaN(parsed.getTime())) {
-      return parsed;
-    }
+    const parsed = new Date(0);
+    // Date.UTC treats years 0-99 as 1900-1999. Preserve the supplied year.
+    parsed.setUTCFullYear(year, month, day);
+    return year >= 1 && parsed.getUTCFullYear() === year &&
+      parsed.getUTCMonth() === month && parsed.getUTCDate() === day
+      ? parsed
+      : undefined;
   }
 
   const weekMatch = trimmed.match(/^(\d{4})-W(\d{2})$/i);
   if (weekMatch) {
     const year = Number.parseInt(weekMatch[1], 10);
     const week = Number.parseInt(weekMatch[2], 10);
-    if (!Number.isNaN(year) && !Number.isNaN(week)) {
-      const jan4 = new Date(Date.UTC(year, 0, 4));
-      const jan4Weekday = jan4.getUTCDay() || 7;
-      const monday = new Date(jan4);
-      monday.setUTCDate(jan4.getUTCDate() + (1 - jan4Weekday) + (week - 1) * 7);
-      return monday;
-    }
+    if (year < 1 || week < 1 || week > 53) return undefined;
+    const jan4 = new Date(0);
+    jan4.setUTCFullYear(year, 0, 4);
+    const jan4Weekday = jan4.getUTCDay() || 7;
+    const monday = new Date(jan4);
+    monday.setUTCDate(jan4.getUTCDate() + (1 - jan4Weekday) + (week - 1) * 7);
+    // An ISO week belongs to the calendar year containing its Thursday.
+    const thursday = new Date(monday);
+    thursday.setUTCDate(monday.getUTCDate() + 3);
+    return thursday.getUTCFullYear() === year ? monday : undefined;
   }
 
   const fallback = new Date(trimmed);

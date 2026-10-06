@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import json
+import math
 import re
 from datetime import date, datetime
 from itertools import chain
@@ -73,14 +74,15 @@ def _available_trend_files(
 def _coerce_int(value: Any) -> int | None:
     try:
         return int(value) if value is not None and value != "" else None
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         return None
 
 
 def _coerce_float(value: Any) -> float | None:
     try:
-        return float(value) if value is not None and value != "" else None
-    except (TypeError, ValueError):
+        number = float(value) if value is not None and value != "" else None
+        return number if number is not None and math.isfinite(number) else None
+    except (TypeError, ValueError, OverflowError):
         return None
 
 

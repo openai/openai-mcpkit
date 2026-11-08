@@ -64,6 +64,23 @@ function parseIsoDate(value: string | undefined | null): Date | undefined {
       : undefined;
   }
 
+  // Validate the *written* calendar day of an ISO timestamp before Date's
+  // fallback parser can normalize an impossible date into a different day.
+  // Timezone offsets may legitimately change the UTC date, so only validate
+  // the supplied YYYY-MM-DD component here.
+  const timestampMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})T/i);
+  if (timestampMatch) {
+    const year = Number.parseInt(timestampMatch[1], 10);
+    const month = Number.parseInt(timestampMatch[2], 10) - 1;
+    const day = Number.parseInt(timestampMatch[3], 10);
+    const calendar = new Date(0);
+    calendar.setUTCFullYear(year, month, day);
+    if (year < 1 || calendar.getUTCFullYear() !== year ||
+        calendar.getUTCMonth() !== month || calendar.getUTCDate() !== day) {
+      return undefined;
+    }
+  }
+
   const weekMatch = trimmed.match(/^(\d{4})-W(\d{2})$/i);
   if (weekMatch) {
     const year = Number.parseInt(weekMatch[1], 10);
